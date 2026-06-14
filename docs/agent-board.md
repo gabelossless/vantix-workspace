@@ -1,7 +1,14 @@
 # Vantix Agent Board
 
-Workspace: `./` (project root)
-Last updated: June 13, 2026
+## Project Skills Registry
+
+| Skill Name | Domain | Purpose |
+|---|---|---|
+| `vantix-type-contract` | Types | Maintaining Rust↔TS contract boundary |
+| `vantix-daemon-patterns` | Backend | Exchange adapters, features, health, logging |
+| `vantix-ui-patterns` | Frontend | SWR, styling, sidebar, offline handling |
+| `vantix-security-hygiene` | Security | Git hygiene, path sanitization, artifacts |
+| `vantix-verification-checklist` | QA | Dual-mode testing, lint/build, contract sync |
 
 ---
 
@@ -21,7 +28,7 @@ Last updated: June 13, 2026
     └─────────┬─────────┘  └─────────┬─────────┘  └─────────────────┘
               │                      │
               └──────────────────────┘
-                                     │
+                                      │
                     ┌────────────────▼────────────────┐
                     │       R&D Product Team           │
                     │  5 agents — execution layer      │
@@ -124,3 +131,4 @@ CEO ──> Board ──> CTO ──> R&D Team
 | Capital RAG Engineer | `.opencode/agents/capital-rag-engineer.md` | R&D |
 | Terminal UX Engineer | `.opencode/agents/terminal-ux-engineer.md` | R&D |
 | Data Pipeline Engineer | `.opencode/agents/data-pipeline-engineer.md` | R&D |
+

@@ -29,6 +29,7 @@ You are the Data Pipeline Engineer for Vantix Oracle.
 - All pipelines must handle daemon startup without pre-existing data
 - Metrics must never block the main data path (fire-and-forget writes)
 - Keep storage paths relative to daemon working directory, never hardcoded
+- Use the `vantix-daemon-patterns` skill for structured logging and storage architecture
 
 ## Commands
 - `cargo check` / `cargo test`

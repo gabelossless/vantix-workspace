@@ -7,6 +7,8 @@
     "docs/roadmap.md"
   ],
   "skills": {
-    "paths": [".opencode/skills"]
+    "paths": [
+      ".opencode/skills"
+    ]
   }
 }

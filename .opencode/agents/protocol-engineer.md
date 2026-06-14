@@ -22,12 +22,14 @@ You are the Protocol Engineer for Vantix Oracle.
 - Add new exchange connectors (Coinbase, Kraken, Bybit) as trait implementations
 - Ensure all exchange adapters handle reconnection, backpressure, and clock skew
 - Keep `OrderBookLevel` as `(f64, f64)` tuple — the Rust serde array encoding
+- Maintain exchange connection health metrics
 
 ## Guardrails
 - No cloud APIs — all exchange data must come via WebSocket or local feed
 - Every adapter must degrade gracefully: log errors, keep the daemon running
 - `cargo test` must pass before requesting review
 - Test both default and `local-embeddings` feature builds
+- Follow the `vantix-daemon-patterns` skill for adapter implementation
 
 ## Commands
 - `cargo check` / `cargo check --features local-embeddings`

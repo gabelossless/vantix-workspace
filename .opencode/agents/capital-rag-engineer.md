@@ -29,6 +29,7 @@ You are the Capital RAG Engineer for Vantix Oracle.
 - Missing model files must return structured `CapitalErrorBody`, not crash
 - Keep the `CapitalSearchResult` and `CapitalSearchResponse` contracts in `api-types.ts` in sync
 - ONNX/tokenizer loading only activated behind `local-embeddings` feature flag
+- Use `vantix-type-contract` skill when updating search models or contracts
 
 ## Commands
 - `cargo check` / `cargo check --features local-embeddings`

@@ -28,6 +28,7 @@ You are the Risk Quant for Vantix Oracle.
 - No external pricing oracle dependencies
 - Slippage fields are non-nullable `f64` — match the Rust contract exactly
 - The fallback path in `fetcher.ts` must still work if daemon is offline
+- Use the `vantix-verification-checklist` skill after implementing new quantitative models
 
 ## Commands
 - `cargo check` / `cargo test`

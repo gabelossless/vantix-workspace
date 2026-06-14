@@ -30,6 +30,7 @@ You are the Terminal UX Engineer for Vantix Oracle.
 - SWR is the data fetching layer — do not add Redux, Zustand, or other state managers
 - Components must render without a running daemon (lint, build, basic render)
 - Keep the dense terminal aesthetic — every pixel should carry information
+- Use the `vantix-ui-patterns` skill for implementing new components
 
 ## Commands
 - `npm run lint`
