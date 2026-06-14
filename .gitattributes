@@ -1,0 +1,25 @@
+# Auto-detect text files and normalize to LF
+* text=auto
+
+# Shell scripts must be LF
+*.sh text eol=lf
+
+# Rust/TS/TSX/MD/JSON/YAML text files
+*.rs text
+*.ts text
+*.tsx text
+*.md text
+*.json text
+*.toml text
+*.yaml text
+*.yml text
+*.mjs text
+
+# Binary files
+*.onnx binary
+*.db binary
+*.db-shm binary
+*.db-wal binary
+*.db-journal binary
+*.png binary
+*.ico binary

@@ -1,6 +1,6 @@
 # Vantix Agent Board
 
-Workspace: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace`
+Workspace: `./` (project root)
 Last updated: June 13, 2026
 
 ---

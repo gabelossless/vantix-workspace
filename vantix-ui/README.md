@@ -2,7 +2,7 @@
 
 Vantix Oracle is a local-first crypto risk terminal built with Next.js App Router, TypeScript, Tailwind CSS, and SWR.
 
-Project path: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-ui`
+Project path: `./vantix-ui` (relative to workspace root)
 
 It proxies a Rust daemon at `http://127.0.0.1:8787` and presents:
 

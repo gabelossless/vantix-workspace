@@ -1,6 +1,6 @@
 # Vantix UI
 
-Project path: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-ui`
+Project path: `./vantix-ui`
 
 ## Purpose
 

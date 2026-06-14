@@ -28,5 +28,5 @@ You are the CTO Agent for Vantix Oracle, a local-first crypto risk terminal.
 - Changes to the Exchange Adapter trait require Protocol Engineer review
 
 ## Context
-- Workspace: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace`
+- Workspace: `./` (project root)
 - Read `docs/agent-handoff.md`, `vantix-daemon/MODELS.md`, and `vantix-ui/AGENTS.md`

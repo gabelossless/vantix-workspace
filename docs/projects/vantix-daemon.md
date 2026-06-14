@@ -1,6 +1,6 @@
 # Vantix Daemon
 
-Project path: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-daemon`
+Project path: `./vantix-daemon`
 
 ## Purpose
 

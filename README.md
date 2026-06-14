@@ -1,11 +1,11 @@
 # Vantix Workspace
 
-Workspace root: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace`
+Workspace root: `./` (project root)
 
 This workspace contains two projects:
 
-- `vantix-ui` at `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-ui`
-- `vantix-daemon` at `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-daemon`
+- `vantix-ui` at `./vantix-ui`
+- `vantix-daemon` at `./vantix-daemon`
 
 ## Documentation
 

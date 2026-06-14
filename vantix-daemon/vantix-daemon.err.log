@@ -1,4 +1,0 @@
-   Compiling vantix-daemon v0.1.0 (C:\Users\Walt & Carter\Documents\Playground\vantix-daemon)
-    Finished `release` profile [optimized] target(s) in 3.42s
-     Running `target\release\vantix-daemon.exe`
-error: process didn't exit successfully: `target\release\vantix-daemon.exe` (exit code: 0xffffffff)

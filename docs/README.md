@@ -1,6 +1,6 @@
 # Vantix Docs
 
-Workspace docs root: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\docs`
+Workspace docs root: `./docs`
 
 This folder keeps documentation for the workspace projects together in one place.
 
@@ -18,5 +18,5 @@ This folder keeps documentation for the workspace projects together in one place
 
 ## Quick Map
 
-- UI project path: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-ui`
-- Daemon project path: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-daemon`
+- UI project path: `./vantix-ui`
+- Daemon project path: `./vantix-daemon`

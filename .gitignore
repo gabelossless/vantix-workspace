@@ -3,7 +3,21 @@ target/
 .vscode/
 *.onnx
 *.bin
-storage/**/*.db
-storage/**/*.db-journal
+
+# Runtime artifacts
+*.log
+*.out
+*.err
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Environment
 .env
 .env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db

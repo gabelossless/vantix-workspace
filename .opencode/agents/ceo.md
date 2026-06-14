@@ -27,5 +27,5 @@ You are the CEO Agent for Vantix Oracle, a local-first crypto risk terminal.
 - Prefer editing existing docs over creating parallel copies
 
 ## Context
-- Workspace: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace`
+- Workspace: `./` (project root)
 - Read `docs/agent-handoff.md` and `docs/roadmap.md` before making decisions

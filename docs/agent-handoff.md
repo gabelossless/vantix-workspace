@@ -1,14 +1,14 @@
 # Vantix Agent Handoff
 
-Workspace path: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace`
+Workspace path: `./` (project root — Vantix workspace)
 
 Use this document as the first stop for any new coding agent joining the Vantix workspace.
 
 ## Project Map
 
-- `vantix-ui` at `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-ui`
-- `vantix-daemon` at `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\vantix-daemon`
-- Workspace docs at `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace\docs`
+- `vantix-ui` at `./vantix-ui`
+- `vantix-daemon` at `./vantix-daemon`
+- Workspace docs at `./docs`
 
 ## Read First
 

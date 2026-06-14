@@ -42,6 +42,6 @@ You are the Vantix Orchestrator. You dispatch work to specialist agents autonomo
 - Any new endpoints are documented in `docs/`
 
 ## Context
-- Workspace: `C:\Users\Walt & Carter\Documents\Playground\vantix-workspace`
+- Workspace: `./` (project root)
 - Always read `docs/agent-handoff.md` and `docs/roadmap.md` on startup
 - Keep a todo list with `todowrite` for multi-step dispatches
