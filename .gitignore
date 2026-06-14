@@ -1,0 +1,9 @@
+node_modules/
+target/
+.vscode/
+*.onnx
+*.bin
+storage/**/*.db
+storage/**/*.db-journal
+.env
+.env.local

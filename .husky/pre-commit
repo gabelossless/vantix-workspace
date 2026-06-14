@@ -1,0 +1,22 @@
+#!/bin/sh
+# Pre-commit hook for Vantix workspace
+echo "--- Running pre-commit checks ---"
+
+# Check Rust formatting
+cd vantix-daemon
+cargo fmt --check
+if [ $? -ne 0 ]; then
+  echo "⚠️  cargo fmt --check failed. Run 'cargo fmt' to fix."
+  exit 1
+fi
+
+# Lint UI
+cd ../vantix-ui
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "⚠️  npm run lint failed."
+  exit 1
+fi
+
+echo "✅ Pre-commit checks passed"
+exit 0
