@@ -74,3 +74,11 @@ export interface CapitalHealth {
   model_loaded: boolean;
   uptime_hint: string;
 }
+
+export interface RiskSnapshotResponse {
+  volatility_status: string;
+  liquidity_risk: string;
+  spread_risk: string;
+  depth_risk: string;
+  data_freshness: string;
+}

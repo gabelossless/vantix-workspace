@@ -19,6 +19,7 @@ import type {
   CapitalSearchResponse,
   HealthStatus,
   OrderBookSnapshot,
+  RiskSnapshotResponse,
   Side,
   SlippageEstimate,
 } from "@/lib/api-types";
@@ -170,6 +171,19 @@ export default function Home() {
     },
   );
 
+  const {
+    data: daemonRisk,
+  } = useSWR<RiskSnapshotResponse>(
+    orderbook ? "/api/v1/risk" : null,
+    async (path: string) => fetchRouteJson<RiskSnapshotResponse>(path),
+    {
+      refreshInterval: 5000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+      dedupingInterval: 2500,
+    },
+  );
+
   const lastUpdate = orderbook?.fetchedAt ?? health?.fetchedAt ?? null;
   const orderbookAgeMs = summarizeAge(orderbook?.fetchedAt);
   const stale = orderbookAgeMs !== null && orderbookAgeMs > STALE_ORDERBOOK_THRESHOLD_MS;
@@ -187,24 +201,32 @@ export default function Home() {
       : health?.pair ?? "Unknown pair";
   const imbalance = computeImbalance(orderbook);
 
-  const riskSnapshot: RiskSnapshot = {
-    volatilityStatus: "Moderate",
-    liquidityRisk: stale ? "Moderate" : "Low",
-    spreadRisk: orderbook?.spreadBps !== null && orderbook?.spreadBps !== undefined && orderbook.spreadBps > 15
-      ? "High"
-      : orderbook?.spreadBps !== null && orderbook?.spreadBps !== undefined && orderbook.spreadBps > 5
-        ? "Moderate"
-        : "Low",
-    depthRisk:
-      imbalance.imbalanceScore === null
-        ? "Moderate"
-        : Math.abs(imbalance.imbalanceScore) > 25
+  const riskSnapshot: RiskSnapshot = daemonRisk
+    ? {
+        volatilityStatus: daemonRisk.volatility_status as RiskSnapshot["volatilityStatus"],
+        liquidityRisk: daemonRisk.liquidity_risk as RiskSnapshot["liquidityRisk"],
+        spreadRisk: daemonRisk.spread_risk as RiskSnapshot["spreadRisk"],
+        depthRisk: daemonRisk.depth_risk as RiskSnapshot["depthRisk"],
+        dataFreshness: daemonRisk.data_freshness as RiskSnapshot["dataFreshness"],
+      }
+    : {
+        volatilityStatus: "Moderate",
+        liquidityRisk: stale ? "Moderate" : "Low",
+        spreadRisk: orderbook?.spreadBps !== null && orderbook?.spreadBps !== undefined && orderbook.spreadBps > 15
           ? "High"
-          : Math.abs(imbalance.imbalanceScore) > 12
+          : orderbook?.spreadBps !== null && orderbook?.spreadBps !== undefined && orderbook.spreadBps > 5
             ? "Moderate"
             : "Low",
-    dataFreshness: healthError ? "Offline" : stale ? "Stale" : "Fresh",
-  };
+        depthRisk:
+          imbalance.imbalanceScore === null
+            ? "Moderate"
+            : Math.abs(imbalance.imbalanceScore) > 25
+              ? "High"
+              : Math.abs(imbalance.imbalanceScore) > 12
+                ? "Moderate"
+                : "Low",
+        dataFreshness: healthError ? "Offline" : stale ? "Stale" : "Fresh",
+      };
 
   useEffect(() => {
     if (!healthError) {

@@ -3,6 +3,7 @@ use crate::capital::{
 };
 use crate::health::AppHealth;
 use crate::models::OrderBookSnapshot;
+use crate::risk::{compute_risk, RiskSnapshot};
 use crate::slippage::{estimate_execution, SlippageEstimate};
 use axum::{
     extract::{Query, State},
@@ -48,6 +49,7 @@ pub async fn serve_api(state: Arc<AppState>, bind_addr: &str) {
         .route("/health", get(health_check))
         .route("/orderbook/latest", get(get_latest_book))
         .route("/estimate/slippage", get(get_slippage))
+        .route("/v1/risk", get(get_risk))
         .route("/v1/capital/search", get(capital_search))
         .route("/v1/capital/health", get(capital_health))
         .layer(cors)
@@ -111,6 +113,23 @@ async fn get_slippage(
         Ok(est) => Ok(Json(est)),
         Err(err) => Err((StatusCode::BAD_REQUEST, err)),
     }
+}
+
+async fn get_risk(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<RiskSnapshot>, (StatusCode, String)> {
+    let book_guard = state.latest_book.read().await;
+    let book = match &*book_guard {
+        Some(snapshot) => snapshot,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Book not initialized".to_string(),
+            ))
+        }
+    };
+
+    Ok(Json(compute_risk(book)))
 }
 
 #[derive(Deserialize)]

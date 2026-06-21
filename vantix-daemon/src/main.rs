@@ -3,6 +3,7 @@ mod capital;
 mod exchange;
 mod health;
 mod models;
+mod risk;
 mod slippage;
 mod storage;
 

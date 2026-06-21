@@ -5,6 +5,7 @@ import type {
   HealthStatus,
   OrderBookLevel,
   OrderBookSnapshot,
+  RiskSnapshotResponse,
   Side,
   SlippageEstimate,
 } from "@/lib/api-types";
@@ -371,4 +372,29 @@ export async function fetchDaemonCapitalSearch(
 
 export async function fetchDaemonCapitalHealth(): Promise<CapitalHealth> {
   return parseCapitalHealthResponse(await fetchDaemonJson("/v1/capital/health"));
+}
+
+function parseRiskSnapshotResponse(payload: unknown): RiskSnapshotResponse {
+  if (
+    !isRecord(payload) ||
+    typeof payload.volatility_status !== "string" ||
+    typeof payload.liquidity_risk !== "string" ||
+    typeof payload.spread_risk !== "string" ||
+    typeof payload.depth_risk !== "string" ||
+    typeof payload.data_freshness !== "string"
+  ) {
+    return invalidPayload("/v1/risk", payload);
+  }
+
+  return {
+    volatility_status: payload.volatility_status,
+    liquidity_risk: payload.liquidity_risk,
+    spread_risk: payload.spread_risk,
+    depth_risk: payload.depth_risk,
+    data_freshness: payload.data_freshness,
+  };
+}
+
+export async function fetchDaemonRisk(): Promise<RiskSnapshotResponse> {
+  return parseRiskSnapshotResponse(await fetchDaemonJson("/v1/risk"));
 }

@@ -28,7 +28,7 @@ export function RiskSnapshot({ snapshot }: RiskSnapshotProps) {
       <div className="mb-4">
         <h2 className="text-sm font-semibold tracking-[0.18em] text-zinc-100">Risk Snapshot</h2>
         <p className="mt-1 text-xs uppercase tracking-[0.16em] text-zinc-500">
-          Placeholder framework for future daemon endpoints
+          Daemon-sourced risk assessment from order book microstructure
         </p>
       </div>
 
