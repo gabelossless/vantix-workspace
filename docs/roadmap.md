@@ -94,7 +94,7 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 
 **Data Status:**
 - Narrative Engine: Wired to local `SystemLogEntry[]` state — working
-- Agent Fleet: Uses hardcoded `buildAgentFleet()` placeholder — **no backend endpoint exists**
+- Agent Fleet: Wired to daemon `/v1/agent-fleet` and rendered in `AgentFleetPanel` — fallback only when offline
 
 ---
 
@@ -158,9 +158,9 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 ## Milestone 8: Agent Fleet Backend
 
 ### 8.1 Daemon Endpoint
-- [ ] Design and implement `GET /v1/agent-fleet` returning `AgentFleetEntry[]`-compatible data
-- [ ] Wire TypeScript contracts in `api-types.ts`
-- [ ] Add adapter in `adapters.ts` replacing `buildAgentFleet()` placeholder
+- [x] Implement `GET /v1/agent-fleet` returning agent roster data from `src/fleet.rs`
+- [x] Wire TypeScript contracts in `api-types.ts`
+- [x] Add adapter in `adapters.ts` converting daemon rows into view models
 
 ### 8.2 Agent Telemetry
 - [ ] Agent status lifecycle (active/idle/offline)
@@ -181,14 +181,14 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 | Path sanitization (absolute→relative) | ✅ Done |
 | `.opencode/skills/` project skills | ✅ Done (5 skills) |
 | `.opencode/agents/` refined configs | ✅ Done (8 agents) |
-| Dynamic agent fleet endpoint | ❌ Not started |
-| Risk endpoint in daemon | ❌ Not started |
-| Capital search UI integration | ❌ Not started |
+| Dynamic agent fleet endpoint | ✅ Done |
+| Risk endpoint in daemon | ✅ Done |
+| Capital search UI integration | ✅ Done |
 | `/metrics` endpoint | ❌ Not started |
 | Correlation IDs | ❌ Not started |
-| `cargo clippy` in CI | ❌ Not started (component installed, never run) |
+| `cargo clippy` in CI | ✅ Done |
 | Rust `deny(warnings)` in CI | ❌ Not started |
-| Dependency audit (`cargo audit`) | ❌ Not started |
+| Dependency audit (`cargo audit` / `npm audit`) | ⚠️ Partial |
 | TypeScript strict mode audit | ⚠️ Partial |
 | Integration test harness (UI + daemon) | ❌ Not started |
 | Storybook / component catalog | ❌ Not started |
@@ -209,6 +209,9 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 | 2026-06-14 | Orphaned mock data is a bug, not a feature | Mock should write to `latest_book` so `/orderbook/latest` works when Binance is down |
 | 2026-06-14 | Skills registry as `.opencode/skills/` with SKILL.md | Follows opencode skill convention; agents load relevant skills via `skill` tool |
 | 2026-06-21 | Five milestone tracks renumbered for clarity | M3→M4 (Narrative/Fleet) done; M3 split into Capital+Risk+Agent Fleet milestones |
+| 2026-06-21 | `GET /v1/risk` moved to daemon-sourced microstructure analysis | Replaces client-only heuristics with a shared risk contract |
+| 2026-06-21 | `GET /v1/agent-fleet` added to daemon and UI | Fleet panel now renders configured agent roster from the daemon |
+| 2026-06-21 | Capital search UI wired to daemon endpoints | Capital health and search are now reachable through `/api/v1/capital/*` |
 
 ---
 
@@ -225,29 +228,26 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 
 ## Next Actions (This Sprint)
 
-### Priority 1 — Fix Orphaned Mock Data (M3.7)
-- [ ] Wire `mock_book` into `AppState` as fallback when Binance disconnected
-- [ ] Or: merge mock data into `latest_book` when Binance feed is absent
+### Priority 1 — Agent Telemetry (M8.2)
+- [ ] Add agent status lifecycle events (active / idle / offline)
+- [ ] Track task completion counts and last-active timestamps from the orchestrator
+- [ ] Surface agent health and uptime in the fleet endpoint
 
-### Priority 2 — Wire Capital Search in UI (M3.5)
-- [ ] Create `/api/v1/capital/search` proxy route
-- [ ] Create `/api/v1/capital/health` proxy route
-- [ ] Add `CapitalSearchPanel` component with search input + results display
-- [ ] Add `search` view to `ViewState` in page.tsx
-- [ ] Add search nav item to Sidebar
+### Priority 2 — Observability
+- [ ] Add `/metrics` endpoint (Prometheus format) for latency, error rates, queue depths
+- [ ] Propagate correlation IDs from UI → daemon → exchange WS
 
-### Priority 3 — Daemon Risk Endpoint (M6.3)
-- [ ] Design `GET /v1/risk` response schema
-- [ ] Implement risk computation from order book (volatility, spread risk, depth risk)
-- [ ] Add TypeScript contract and adapter
-- [ ] Wire into `RiskSnapshot` component replacing client-side heuristics
+### Priority 3 — Capital Search Quality
+- [ ] Add source filtering (e.g., `source=capital_brief`)
+- [ ] Add score threshold parameter
+- [ ] Benchmark mock vs local-embeddings latency
 
-### Priority 4 — CI Hardening (Tech Debt)
-- [ ] Add `cargo clippy -- -D warnings` to CI
-- [ ] Add `npm run typecheck` (or `tsc --noEmit`) to CI
-- [ ] Add dependency audit (`cargo audit` or `npm audit`) to CI
+### Priority 4 — Risk Maturation
+- [ ] Add volatility estimation from order book microstructure
+- [ ] Track funding rate + basis
+- [ ] Add liquidation distance calculator per symbol
 
-### Priority 5 — Agent Fleet Endpoint (M8.1)
-- [ ] Design daemon endpoint for agent fleet data
-- [ ] Implement `GET /v1/agent-fleet` in Rust
-- [ ] Wire TypeScript contracts and replace `buildAgentFleet()` placeholder
+### Priority 5 — CI / UX Hardening
+- [ ] Add `cargo deny` / `cargo audit` coverage
+- [ ] Add Rust `deny(warnings)` to CI
+- [ ] Self-host fonts to remove Google Fonts dependency

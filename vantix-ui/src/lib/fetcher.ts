@@ -1,5 +1,6 @@
 import { API_BASE_URL, DAEMON_TIMEOUT_MS } from "@/lib/config";
 import type {
+  AgentFleetRecord,
   CapitalHealth,
   CapitalSearchResponse,
   HealthStatus,
@@ -372,6 +373,41 @@ export async function fetchDaemonCapitalSearch(
 
 export async function fetchDaemonCapitalHealth(): Promise<CapitalHealth> {
   return parseCapitalHealthResponse(await fetchDaemonJson("/v1/capital/health"));
+}
+
+function parseAgentFleetEntry(payload: unknown): AgentFleetRecord | null {
+  if (
+    !isRecord(payload) ||
+    typeof payload.name !== "string" ||
+    typeof payload.role !== "string" ||
+    (payload.status !== "active" && payload.status !== "idle" && payload.status !== "offline") ||
+    typeof payload.last_active !== "string" ||
+    !isFiniteNumber(payload.tasks_completed)
+  ) {
+    return null;
+  }
+
+  return {
+    name: payload.name,
+    role: payload.role,
+    status: payload.status,
+    last_active: payload.last_active,
+    tasks_completed: payload.tasks_completed,
+  };
+}
+
+export async function fetchDaemonAgentFleet(): Promise<AgentFleetRecord[]> {
+  const payload = await fetchDaemonJson("/v1/agent-fleet");
+  if (!Array.isArray(payload)) {
+    return invalidPayload("/v1/agent-fleet", payload);
+  }
+
+  const entries = payload.map(parseAgentFleetEntry);
+  if (entries.some((entry) => entry === null)) {
+    return invalidPayload("/v1/agent-fleet", payload);
+  }
+
+  return entries as AgentFleetRecord[];
 }
 
 function parseRiskSnapshotResponse(payload: unknown): RiskSnapshotResponse {

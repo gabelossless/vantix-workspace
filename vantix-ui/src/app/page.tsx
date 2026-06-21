@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import {
   buildAgentFleet,
+  toAgentFleetView,
   toHealthSnapshotView,
   toOrderBookSnapshotView,
   toSlippageEstimateView,
@@ -15,6 +16,7 @@ import {
   formatTimestamp,
 } from "@/lib/format";
 import type {
+  AgentFleetRecord as AgentFleetRecordResponse,
   CapitalHealth,
   CapitalSearchResponse,
   HealthStatus,
@@ -101,7 +103,6 @@ function summarizeAge(fetchedAt: string | null | undefined) {
 
 export default function Home() {
   const [view, setView] = useState<ViewState>("overview");
-  const agents: AgentFleetEntry[] = useMemo(() => buildAgentFleet(), []);
   const [slippageSide, setSlippageSide] = useState<Side>("buy");
   const [slippageNotionalUsd, setSlippageNotionalUsd] = useState(50_000);
   const [slippageEstimate, setSlippageEstimate] = useState<SlippageEstimateView | null>(null);
@@ -183,6 +184,19 @@ export default function Home() {
       dedupingInterval: 2500,
     },
   );
+
+  const { data: fleetData } = useSWR<AgentFleetEntry[] | undefined>(
+    "/api/v1/agent-fleet",
+    async (path: string) => toAgentFleetView(await fetchRouteJson<AgentFleetRecordResponse[]>(path)),
+    {
+      refreshInterval: 10_000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+      dedupingInterval: 5000,
+    },
+  );
+
+  const agents: AgentFleetEntry[] = useMemo(() => fleetData ?? buildAgentFleet(), [fleetData]);
 
   const lastUpdate = orderbook?.fetchedAt ?? health?.fetchedAt ?? null;
   const orderbookAgeMs = summarizeAge(orderbook?.fetchedAt);

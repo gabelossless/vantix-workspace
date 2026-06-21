@@ -2,6 +2,7 @@ mod api;
 mod capital;
 mod exchange;
 mod health;
+mod fleet;
 mod models;
 mod risk;
 mod slippage;

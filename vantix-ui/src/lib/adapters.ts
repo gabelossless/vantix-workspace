@@ -1,4 +1,5 @@
 import type {
+  AgentFleetRecord as AgentFleetRecordResponse,
   HealthStatus,
   OrderBookLevel,
   OrderBookSnapshot,
@@ -6,7 +7,7 @@ import type {
   SlippageEstimate,
 } from "@/lib/api-types";
 import type {
-  AgentFleetEntry,
+  AgentFleetEntry as AgentFleetEntryView,
   HealthSnapshotView,
   OrderBookLevelView,
   OrderBookSnapshotView,
@@ -74,16 +75,26 @@ export function toOrderBookSnapshotView(
   };
 }
 
-export function buildAgentFleet(): AgentFleetEntry[] {
+export function toAgentFleetView(entries: AgentFleetRecordResponse[]): AgentFleetEntryView[] {
+  return entries.map((entry) => ({
+    name: entry.name,
+    role: entry.role,
+    status: entry.status,
+    lastActive: entry.last_active,
+    tasksCompleted: entry.tasks_completed,
+  }));
+}
+
+export function buildAgentFleet(): AgentFleetEntryView[] {
   return [
-    { name: "Bookkeeper", role: "General Ledger", status: "active", lastActive: "now", tasksCompleted: 1423 },
-    { name: "Sales Rep", role: "Client Engagement", status: "active", lastActive: "2s ago", tasksCompleted: 987 },
-    { name: "Customer Support", role: "Ticket Resolution", status: "active", lastActive: "1s ago", tasksCompleted: 654 },
-    { name: "Recruiter", role: "Talent Pipeline", status: "idle", lastActive: "34s ago", tasksCompleted: 312 },
-    { name: "Protocol Engineer", role: "Exchange Adapters", status: "active", lastActive: "now", tasksCompleted: 788 },
-    { name: "Risk Quant", role: "Slippage & Volatility", status: "idle", lastActive: "2m ago", tasksCompleted: 445 },
-    { name: "RAG Engineer", role: "Knowledge Retrieval", status: "active", lastActive: "3s ago", tasksCompleted: 231 },
-    { name: "Data Engineer", role: "Data Pipeline", status: "offline", lastActive: "15m ago", tasksCompleted: 89 },
+    { name: "Orchestrator", role: "Primary dispatcher", status: "active", lastActive: "now", tasksCompleted: 0 },
+    { name: "CEO Agent", role: "Strategy & vision", status: "idle", lastActive: "—", tasksCompleted: 0 },
+    { name: "CTO Agent", role: "Architecture & quality", status: "idle", lastActive: "—", tasksCompleted: 0 },
+    { name: "Protocol Engineer", role: "Exchange adapters", status: "active", lastActive: "now", tasksCompleted: 0 },
+    { name: "Risk Quant", role: "Slippage & volatility", status: "active", lastActive: "now", tasksCompleted: 0 },
+    { name: "Capital RAG Engineer", role: "Knowledge retrieval", status: "active", lastActive: "now", tasksCompleted: 0 },
+    { name: "Terminal UX Engineer", role: "Panels & data viz", status: "active", lastActive: "now", tasksCompleted: 0 },
+    { name: "Data Pipeline Engineer", role: "Storage & observability", status: "active", lastActive: "now", tasksCompleted: 0 },
   ];
 }
 

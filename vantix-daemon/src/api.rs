@@ -1,6 +1,7 @@
 use crate::capital::{
     CapitalErrorBody, CapitalHealth, CapitalSearchResponse, CapitalSearchService,
 };
+use crate::fleet::{get_agent_fleet, AgentFleetEntry};
 use crate::health::AppHealth;
 use crate::models::OrderBookSnapshot;
 use crate::risk::{compute_risk, RiskSnapshot};
@@ -50,6 +51,7 @@ pub async fn serve_api(state: Arc<AppState>, bind_addr: &str) {
         .route("/orderbook/latest", get(get_latest_book))
         .route("/estimate/slippage", get(get_slippage))
         .route("/v1/risk", get(get_risk))
+        .route("/v1/agent-fleet", get(agent_fleet))
         .route("/v1/capital/search", get(capital_search))
         .route("/v1/capital/health", get(capital_health))
         .layer(cors)
@@ -130,6 +132,10 @@ async fn get_risk(
     };
 
     Ok(Json(compute_risk(book)))
+}
+
+async fn agent_fleet() -> Json<Vec<AgentFleetEntry>> {
+    Json(get_agent_fleet())
 }
 
 #[derive(Deserialize)]

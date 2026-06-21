@@ -90,7 +90,7 @@ The UI now supports view switching via sidebar:
 | Order Book | OrderBookDepth | SWR → daemon `/orderbook/latest` |
 | Slippage | SlippageEstimator | SWR → daemon `/estimate/slippage` |
 | Narrative | NarrativeEnginePanel | Local `SystemLogEntry[]` state |
-| Fleet | AgentFleetPanel | Placeholder data (no backend yet) |
+| Fleet | AgentFleetPanel | Daemon `/v1/agent-fleet` |
 | Logs | SystemLogs | Local `SystemLogEntry[]` state |
 
 View state is managed via `useState<ViewState>` in `page.tsx` — no router dependency.

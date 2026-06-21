@@ -12,6 +12,7 @@ target/
 *.db-shm
 *.db-wal
 *.db-journal
+*.tsbuildinfo
 
 # Environment
 .env

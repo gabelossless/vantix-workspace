@@ -75,6 +75,16 @@ export interface CapitalHealth {
   uptime_hint: string;
 }
 
+export type AgentFleetStatus = "active" | "idle" | "offline";
+
+export interface AgentFleetRecord {
+  name: string;
+  role: string;
+  status: AgentFleetStatus;
+  last_active: string;
+  tasks_completed: number;
+}
+
 export interface RiskSnapshotResponse {
   volatility_status: string;
   liquidity_risk: string;
