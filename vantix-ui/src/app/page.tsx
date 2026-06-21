@@ -15,6 +15,8 @@ import {
   formatTimestamp,
 } from "@/lib/format";
 import type {
+  CapitalHealth,
+  CapitalSearchResponse,
   HealthStatus,
   OrderBookSnapshot,
   Side,
@@ -22,6 +24,8 @@ import type {
 } from "@/lib/api-types";
 import type {
   AgentFleetEntry,
+  CapitalHealthView,
+  CapitalSearchResultView,
   HealthSnapshotView,
   OrderBookSnapshotView,
   RiskSnapshot,
@@ -39,9 +43,10 @@ import { RiskSnapshot as RiskSnapshotPanel } from "@/components/RiskSnapshot";
 import { SystemLogs } from "@/components/SystemLogs";
 import { NarrativeEnginePanel } from "@/components/NarrativeEnginePanel";
 import { AgentFleetPanel } from "@/components/AgentFleetPanel";
+import { CapitalSearchPanel } from "@/components/CapitalSearchPanel";
 import { DaemonFetchError } from "@/lib/fetcher";
 
-type ViewState = "overview" | "orderbook" | "slippage" | "narrative" | "fleet" | "logs";
+type ViewState = "overview" | "orderbook" | "slippage" | "capital" | "narrative" | "fleet" | "logs";
 
 function createLog(
   level: SystemLogEntry["level"],
@@ -100,6 +105,10 @@ export default function Home() {
   const [slippageNotionalUsd, setSlippageNotionalUsd] = useState(50_000);
   const [slippageEstimate, setSlippageEstimate] = useState<SlippageEstimateView | null>(null);
   const [slippageLoading, setSlippageLoading] = useState(false);
+  const [capitalQuery, setCapitalQuery] = useState("");
+  const [capitalResults, setCapitalResults] = useState<CapitalSearchResultView[]>([]);
+  const [capitalTotal, setCapitalTotal] = useState(0);
+  const [capitalLoading, setCapitalLoading] = useState(false);
   const [logs, setLogs] = useState<SystemLogEntry[]>([
     createLog("info", "Terminal initialized", "Awaiting daemon heartbeat and order book data.", 0),
   ]);
@@ -134,6 +143,30 @@ export default function Home() {
       revalidateOnFocus: false,
       shouldRetryOnError: false,
       dedupingInterval: 150,
+    },
+  );
+
+  const {
+    data: capitalHealth,
+    error: capitalHealthError,
+  } = useSWR<CapitalHealthView>(
+    view === "capital" ? "/api/v1/capital/health" : null,
+    async (path: string) => {
+      const raw = await fetchRouteJson<CapitalHealth>(path);
+      return {
+        status: raw.status,
+        mode: raw.mode,
+        dimensions: raw.dimensions,
+        modelLoaded: raw.model_loaded,
+        uptimeHint: raw.uptime_hint,
+        fetchedAt: new Date().toISOString(),
+      };
+    },
+    {
+      refreshInterval: 10_000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+      dedupingInterval: 5000,
     },
   );
 
@@ -257,6 +290,36 @@ export default function Home() {
     }
   }
 
+  async function handleCapitalSearch(query: string) {
+    setCapitalQuery(query);
+    setCapitalLoading(true);
+    try {
+      const response = await fetchRouteJson<CapitalSearchResponse>(
+        `/api/v1/capital/search?q=${encodeURIComponent(query)}&limit=10`,
+      );
+      setCapitalResults(
+        response.results.map((r) => ({
+          id: r.id,
+          source: r.source,
+          title: r.title,
+          content: r.content,
+          score: r.score,
+        })),
+      );
+      setCapitalTotal(response.total);
+    } catch (error) {
+      const detail = extractErrorDetail(error);
+      setCapitalResults([]);
+      setCapitalTotal(0);
+      setLogs((current) => [
+        createLog("error", detail.title, detail.detail, logIndex.current++),
+        ...current,
+      ].slice(0, 80));
+    } finally {
+      setCapitalLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#070809] text-zinc-100">
       <TopStatusBar
@@ -345,6 +408,18 @@ export default function Home() {
               />
               <RiskSnapshotPanel snapshot={riskSnapshot} />
             </div>
+          )}
+
+          {view === "capital" && (
+            <CapitalSearchPanel
+              results={capitalResults}
+              total={capitalTotal}
+              loading={capitalLoading}
+              query={capitalQuery}
+              health={capitalHealth ?? null}
+              healthError={Boolean(capitalHealthError)}
+              onSearch={handleCapitalSearch}
+            />
           )}
 
           {view === "narrative" && <NarrativeEnginePanel logs={logs} />}

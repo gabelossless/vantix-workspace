@@ -7,6 +7,7 @@ const sections: NavSection[] = [
   { id: "overview", label: "Overview" },
   { id: "orderbook", label: "Order Book" },
   { id: "slippage", label: "Slippage" },
+  { id: "capital", label: "Capital" },
   { id: "narrative", label: "Narrative" },
   { id: "fleet", label: "Fleet" },
   { id: "logs", label: "Logs" },

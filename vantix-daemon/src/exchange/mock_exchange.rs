@@ -30,7 +30,7 @@ impl ExchangeAdapter for MockExchange {
         &self,
         symbol: &str,
         state: Arc<RwLock<Option<OrderBookSnapshot>>>,
-        _health: Arc<RwLock<AppHealth>>,
+        health: Arc<RwLock<AppHealth>>,
     ) {
         info!("Starting Mock exchange feed for {}", symbol);
         let mut iteration = 0u64;
@@ -55,6 +55,12 @@ impl ExchangeAdapter for MockExchange {
             };
 
             *state.write().await = Some(snapshot);
+
+            {
+                let mut h = health.write().await;
+                h.last_trade_time = Some(chrono::Utc::now());
+            }
+
             iteration += 1;
             sleep(Duration::from_millis(500)).await;
         }

@@ -75,3 +75,30 @@ export interface SystemLogEntry {
   title: string;
   detail: string;
 }
+
+export interface CapitalSearchResultView {
+  id: string;
+  source: string;
+  title: string;
+  content: string;
+  score: number;
+}
+
+export interface CapitalSearchView {
+  query: string;
+  mode: string;
+  dimensions: number;
+  results: CapitalSearchResultView[];
+  total: number;
+  nextCursor: string | null;
+  fetchedAt: string;
+}
+
+export interface CapitalHealthView {
+  status: string;
+  mode: string;
+  dimensions: number;
+  modelLoaded: boolean;
+  uptimeHint: string;
+  fetchedAt: string;
+}

@@ -1,5 +1,7 @@
 import { API_BASE_URL, DAEMON_TIMEOUT_MS } from "@/lib/config";
 import type {
+  CapitalHealth,
+  CapitalSearchResponse,
   HealthStatus,
   OrderBookLevel,
   OrderBookSnapshot,
@@ -289,4 +291,84 @@ export async function fetchRouteJson<T>(path: string): Promise<T> {
   }
 
   return payload as T;
+}
+
+function parseCapitalSearchResult(payload: unknown) {
+  if (
+    !isRecord(payload) ||
+    typeof payload.id !== "string" ||
+    typeof payload.source !== "string" ||
+    typeof payload.title !== "string" ||
+    typeof payload.content !== "string" ||
+    !isFiniteNumber(payload.score)
+  ) {
+    return null;
+  }
+  return { id: payload.id, source: payload.source, title: payload.title, content: payload.content, score: payload.score };
+}
+
+function parseCapitalSearchResponse(payload: unknown): CapitalSearchResponse {
+  if (
+    !isRecord(payload) ||
+    typeof payload.query !== "string" ||
+    typeof payload.mode !== "string" ||
+    !isFiniteNumber(payload.dimensions) ||
+    !Array.isArray(payload.results) ||
+    !isFiniteNumber(payload.total)
+  ) {
+    return invalidPayload("/v1/capital/search", payload);
+  }
+
+  const results = payload.results.map(parseCapitalSearchResult).filter(
+    (r): r is NonNullable<typeof r> => r !== null,
+  );
+
+  return {
+    query: payload.query,
+    mode: payload.mode,
+    dimensions: payload.dimensions,
+    results,
+    total: payload.total,
+    next_cursor: typeof payload.next_cursor === "string" ? payload.next_cursor : null,
+  };
+}
+
+function parseCapitalHealthResponse(payload: unknown): CapitalHealth {
+  if (
+    !isRecord(payload) ||
+    typeof payload.status !== "string" ||
+    typeof payload.mode !== "string" ||
+    !isFiniteNumber(payload.dimensions) ||
+    typeof payload.model_loaded !== "boolean" ||
+    typeof payload.uptime_hint !== "string"
+  ) {
+    return invalidPayload("/v1/capital/health", payload);
+  }
+
+  return {
+    status: payload.status,
+    mode: payload.mode,
+    dimensions: payload.dimensions,
+    model_loaded: payload.model_loaded,
+    uptime_hint: payload.uptime_hint,
+  };
+}
+
+export async function fetchDaemonCapitalSearch(
+  query: string,
+  limit?: number,
+  cursor?: string,
+): Promise<CapitalSearchResponse> {
+  const params = new URLSearchParams();
+  if (query.trim()) params.set("q", query.trim());
+  if (limit && limit > 0) params.set("limit", String(limit));
+  if (cursor) params.set("cursor", cursor);
+  const qs = params.toString();
+  return parseCapitalSearchResponse(
+    await fetchDaemonJson(`/v1/capital/search${qs ? `?${qs}` : ""}`),
+  );
+}
+
+export async function fetchDaemonCapitalHealth(): Promise<CapitalHealth> {
+  return parseCapitalHealthResponse(await fetchDaemonJson("/v1/capital/health"));
 }

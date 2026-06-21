@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let mock_symbol = symbol.clone();
-    let mock_book = Arc::new(RwLock::new(None));
+    let mock_book = latest_book.clone();
     let mock_health = health.clone();
     let mock = exchange::mock_exchange::MockExchange::new();
     tokio::spawn(async move {
