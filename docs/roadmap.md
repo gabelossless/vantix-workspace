@@ -1,7 +1,7 @@
 # Vantix Roadmap
 
 Workspace: `./` (project root)
-Last updated: June 13, 2026
+Last updated: June 21, 2026
 
 ---
 
@@ -10,10 +10,10 @@ Last updated: June 13, 2026
 **Goal:** Synchronize TypeScript UI types with Rust daemon contract structs.
 
 **Delivered:**
-- `api-types.ts` — exact mirror of active Rust JSON contracts
-- `view-types.ts` — UI-only derived models (dashboard state, formatted rows, risk models, logs)
-- `adapters.ts` — pure transformations from daemon contracts to UI view models
-- `fetcher.ts` — typed to `api-types.ts`, validates and returns daemon contract types
+- `api-types.ts` — exact mirror of active Rust JSON contracts (11 types)
+- `view-types.ts` — UI-only derived models (10 types: dashboard, risk, fleet, logs)
+- `adapters.ts` — 5 pure transformation functions from daemon contracts to UI view models
+- `fetcher.ts` — typed fetcher with 5 error kinds, timeout handling, slippage fallback
 - `types.ts` — compatibility barrel re-exporting both layers
 
 **Verification:**
@@ -21,18 +21,8 @@ Last updated: June 13, 2026
 - `npm run build` ✅ (Next.js 16.2.9, Turbopack)
 - `cargo check` ✅ (default mode, no model assets required)
 - `cargo check --features local-embeddings` ✅
-- `cargo test` ✅ (2 tests)
-- `cargo test --features local-embeddings` ✅ (3 tests)
-
-**Active Contracts:**
-- `GET /health` → `HealthStatus`
-- `GET /orderbook/latest` → `OrderBookSnapshot` (tuple levels `[price, quantity]`)
-- `GET /estimate/slippage` → `SlippageEstimate` (snake_case fields)
-- `GET /v1/capital/search` → `CapitalSearchResponse` / `CapitalErrorBody`
-
-**Not Yet Implemented:**
-- `/v1/capital/health`
-- `/v1/capital/generate-report`
+- `cargo test` ✅
+- `cargo test --features local-embeddings` ✅
 
 ---
 
@@ -42,107 +32,140 @@ Last updated: June 13, 2026
 
 **Delivered:**
 - `ExchangeAdapter` trait in `src/exchange/mod.rs` with `subscribe_and_stream`, `name`, `health_status`
-- `BinanceAdapter` refactored to implement the trait, with `AtomicBool` connection tracking
-- `MockExchange` new adapter generating varied order book data every 500ms
+- `BinanceAdapter` refactored to implement the trait, with `AtomicBool` connection tracking and exponential backoff reconnection
+- `MockExchange` new adapter generating varied order book data every 500ms with cycling offset
 - Both adapters spawned concurrently in `src/main.rs` via `tokio::spawn`
 
-**Verification:**
-- `cargo check` ✅ / `cargo check --features local-embeddings` ✅
-- `cargo test` ✅ / `cargo test --features local-embeddings` ✅
+**Known Issue — Orphaned Mock Data:**
+MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired into `AppState`. The `/orderbook/latest` endpoint only returns Binance data. When Binance is disconnected, the API returns 503 even though mock data is running. Fix: merge mock data into `latest_book` when Binance is disconnected, or alternate between feeds.
 
-## Milestone 3: Capital Health & Observability (In Progress)
+---
+
+## Milestone 3: Capital Health & Observability
 
 ### 3.1 ✅ Capital Health Route
-- [x] `GET /v1/capital/health` returns `{status, mode, dimensions, model_loaded, uptime_hint}`
-- [x] Works in mock, local-loaded, and local-degraded states
-- [x] TypeScript `CapitalHealth` interface in `api-types.ts`
+- `GET /v1/capital/health` returns `{status, mode, dimensions, model_loaded, uptime_hint}`
+- Works in mock, local-loaded, and local-degraded states
+- TypeScript `CapitalHealth` interface in `api-types.ts`
 
 ### 3.2 ✅ Model Documentation
-- [x] "Sourcing Models" section in `MODELS.md` with `optimum-cli` / `transformers.js` export steps
+- "Sourcing Models" section in `MODELS.md` with `optimum-cli` / `transformers.js` export steps
 
-### 3.3 Capital Search Enhancement
-- [ ] Add pagination cursor support to `/v1/capital/search`
+### 3.3 ✅ Structured JSON Logging
+- `tracing_subscriber::fmt().json()` configured in `main.rs`
+- Trace events at info/warn/error levels across adapter lifecycle, health checks, capital searches
+- Env-filter support via `RUST_LOG`
+
+### 3.4 ✅ Connection Health Metrics in `/health`
+- `/health` now returns `exchange_connected`, `last_trade_message_age_secs`, `adapters_running`
+- `AppHealth` shared state updated by adapters on connection/disconnection/message
+
+### 3.5 Capital Search Enhancement
+- [ ] Wire UI proxy route and component for `/v1/capital/search` (type contracts exist, UI lacks fetch/display)
+- [ ] Wire UI proxy route for `/v1/capital/health` (type contract exists)
 - [ ] Add source filtering (e.g., `source=capital_brief`)
 - [ ] Add score threshold parameter
 - [ ] Benchmark mock vs local-embeddings latency
 
-### 3.4 Embeddings & Model Loading
+### 3.6 Embeddings & Model Loading
 - [ ] Cache tokenizer + session to avoid re-load on each request
 - [ ] Model cache warming on startup with health-reported status
 
-### 3.5 Order Book Resilience
-- [ ] Add connection health metrics to `/health` (WS reconnect count, last message age)
+### 3.7 Order Book Resilience
+- [ ] Fix orphaned mock data — merge into shared `latest_book` as fallback
 - [ ] Implement backpressure for stale order book snapshots
 - [ ] Add sequence/gap detection for Binance depth stream
 
-### 3.6 Observability
-- [ ] Structured JSON logging (tracing + serde_json)
+### 3.8 Observability (Remaining)
 - [ ] `/metrics` endpoint (Prometheus format) for latency, error rates, queue depths
 - [ ] Correlation IDs propagated from UI → daemon → Binance WS
+
+---
 
 ## Milestone 4: Narrative Engine & Agent Fleet ✅ COMPLETE
 
 **Goal:** Scaffold new dashboard panels and wire sidebar navigation.
 
 **Delivered:**
-- `NarrativeEnginePanel.tsx` — Dense log viewer rendering `SystemLogEntry[]` with timestamps and level badges
+- `NarrativeEnginePanel.tsx` — Dense table log viewer with timestamp, level badge, title, detail columns
 - `AgentFleetPanel.tsx` — Grid of 8 AI worker cards with status, last active, tasks completed
-- `Sidebar.tsx` — Updated with clickable nav items, `activeView`/`onViewChange` props, active state highlighting
-- `page.tsx` — Added `ViewState` union, conditional panel rendering, view switching via sidebar
+- `Sidebar.tsx` — 6-section nav with active state highlighting and index numbering
+- `page.tsx` — `ViewState` union, conditional panel rendering, view switching via sidebar
 
-**Verification:**
-- `npm run lint` ✅ / `npm run build` ✅ (Next.js 16.2.9, Turbopack)
+**Data Status:**
+- Narrative Engine: Wired to local `SystemLogEntry[]` state — working
+- Agent Fleet: Uses hardcoded `buildAgentFleet()` placeholder — **no backend endpoint exists**
 
 ---
 
-## Milestone 3: Capital RAG Spine
+## Milestone 5: Capital RAG Spine
 
-### 3.1 Knowledge Base
+### 5.1 Knowledge Base
 - [ ] Ingest Markdown/JSON capital briefs into SQLite FTS5 or Tantivy
 - [ ] Add document versioning and hash-based change detection
 - [ ] Build embedding index build script (offline, CI-friendly)
 
-### 3.2 Search Quality
+### 5.2 Search Quality
 - [ ] Hybrid search: keyword (FTS) + vector (ONNX embeddings) with reciprocal rank fusion
 - [ ] Query rewrite for common aliases (e.g., "slip" → "slippage")
 - [ ] Evaluation harness: golden queries + expected top-k doc IDs
 
-### 3.3 Generation (Future)
+### 5.3 Generation (Future)
 - [ ] `/v1/capital/generate-report` — structured LLM-backed briefs
 - [ ] Citation format linking back to source docs + scores
 - [ ] Streaming response for long reports
 
 ---
 
-## Milestone 4: Risk & Analytics
+## Milestone 6: Real-Time Risk & Analytics
 
-### 4.1 Real-Time Risk
+### 6.1 Risk From Order Book
 - [ ] Volatility estimation from order book microstructure (spread, depth, imbalance)
 - [ ] Funding rate + basis tracking (perp vs spot)
 - [ ] Liquidation distance calculator per symbol
 
-### 4.2 Portfolio View
+### 6.2 Portfolio View
 - [ ] Position ingestion (CSV/API) → mark-to-market PnL
 - [ ] Greeks approximation for option positions
 - [ ] Margin health / liquidation risk dashboard
 
+### 6.3 Risk Infrastructure
+- [ ] Dedicated risk endpoint in daemon (`GET /v1/risk`)
+- [ ] Replace client-side `RiskSnapshot` heuristics with daemon-sourced risk data
+- [ ] Risk model trait + implementations (like `ExchangeAdapter`)
+
 ---
 
-## Milestone 5: UX & Terminal Polish
+## Milestone 7: UX & Terminal Polish
 
-### 5.1 Layout
-- [ ] Responsive breakpoint testing (tablet/vertical monitor)
+### 7.1 Layout
+- [ ] Add `loading.tsx`, `error.tsx`, `not-found.tsx` boundary files
 - [ ] Command palette (⌘K) for quick navigation
-- [ ] Persist panel layout to localStorage
+- [ ] Persist active view to localStorage
+- [ ] Responsive breakpoint testing (tablet/vertical monitor)
 
-### 5.2 Data Density
+### 7.2 Data Density
 - [ ] Sparklines in status bar (bid/ask spread, volume)
 - [ ] Heatmap toggle for order book depth
 - [ ] Export current view as CSV/JSON
 
-### 5.3 Theming
+### 7.3 Theming
 - [ ] High-contrast accessibility mode
 - [ ] Monochrome/green-phosphor preset
+
+---
+
+## Milestone 8: Agent Fleet Backend
+
+### 8.1 Daemon Endpoint
+- [ ] Design and implement `GET /v1/agent-fleet` returning `AgentFleetEntry[]`-compatible data
+- [ ] Wire TypeScript contracts in `api-types.ts`
+- [ ] Add adapter in `adapters.ts` replacing `buildAgentFleet()` placeholder
+
+### 8.2 Agent Telemetry
+- [ ] Agent status lifecycle (active/idle/offline)
+- [ ] Task completion tracking with timestamps
+- [ ] Agent health reporting
 
 ---
 
@@ -150,13 +173,26 @@ Last updated: June 13, 2026
 
 | Item | Status |
 |---|---|
-| Git remote + CI pipeline | ❌ Not started |
-| Pre-commit hooks (cargo fmt, eslint, typecheck) | ❌ Not started |
-| Dependency audit schedule | ❌ Not started |
+| Git remote (GitHub) | ✅ Done |
+| GitHub Actions CI pipeline | ✅ Done (daemon: fmt+check+test, UI: lint+build) |
+| Pre-commit hooks (cargo fmt, npm lint) | ✅ Done (husky) |
+| `.gitignore` for runtime artifacts | ✅ Done (logs, db, env) |
+| `.gitattributes` for line endings | ✅ Done |
+| Path sanitization (absolute→relative) | ✅ Done |
+| `.opencode/skills/` project skills | ✅ Done (5 skills) |
+| `.opencode/agents/` refined configs | ✅ Done (8 agents) |
+| Dynamic agent fleet endpoint | ❌ Not started |
+| Risk endpoint in daemon | ❌ Not started |
+| Capital search UI integration | ❌ Not started |
+| `/metrics` endpoint | ❌ Not started |
+| Correlation IDs | ❌ Not started |
+| `cargo clippy` in CI | ❌ Not started (component installed, never run) |
+| Rust `deny(warnings)` in CI | ❌ Not started |
+| Dependency audit (`cargo audit`) | ❌ Not started |
 | TypeScript strict mode audit | ⚠️ Partial |
-| Rust `clippy` + `deny(warnings)` in CI | ❌ Not started |
 | Integration test harness (UI + daemon) | ❌ Not started |
 | Storybook / component catalog | ❌ Not started |
+| Self-host fonts (remove Google Fonts dep) | ❌ Not started |
 
 ---
 
@@ -167,11 +203,12 @@ Last updated: June 13, 2026
 | 2026-06-13 | Split `api-types` / `view-types` / `adapters` | Enforces contract boundary; prevents UI leakage into daemon types |
 | 2026-06-13 | Tuple `[price, qty]` for `OrderBookLevel` | Matches Rust `(f64, f64)` serde array encoding exactly |
 | 2026-06-13 | `local-embeddings` feature flag | Keeps default build fast and dependency-free |
-| 2026-06-13 | No `/v1/capital/health` or `/generate-report` until Rust exists | Prevents phantom frontend contracts |
 | 2026-06-13 | `ExchangeAdapter` trait with `async-trait` crate | Enables polymorphic exchange adapters while keeping trait object safety |
-| 2026-06-13 | `/v1/capital/health` returns `{status, mode, dimensions, model_loaded, uptime_hint}` | Single endpoint covers both mock and local modes without branching |
 | 2026-06-13 | View state routing in page.tsx via `useState` union | No router dependency; SWR stays as the only data layer |
 | 2026-06-13 | Agent Fleet panel uses inline placeholder data | No backend endpoint exists yet; data schema can stabilize before API contract |
+| 2026-06-14 | Orphaned mock data is a bug, not a feature | Mock should write to `latest_book` so `/orderbook/latest` works when Binance is down |
+| 2026-06-14 | Skills registry as `.opencode/skills/` with SKILL.md | Follows opencode skill convention; agents load relevant skills via `skill` tool |
+| 2026-06-21 | Five milestone tracks renumbered for clarity | M3→M4 (Narrative/Fleet) done; M3 split into Capital+Risk+Agent Fleet milestones |
 
 ---
 
@@ -188,9 +225,29 @@ Last updated: June 13, 2026
 
 ## Next Actions (This Sprint)
 
-1. [ ] Initialize git remote, add GitHub Actions CI (lint + typecheck + cargo check/test both features)
-2. [ ] Add `cursor` + `limit` pagination to `/v1/capital/search`
-3. [ ] Connect Agent Fleet panel to daemon data (live or mock endpoint)
-4. [ ] Add connection health metrics to `/health` (WS reconnect count, last message age)
-5. [ ] Add pre-commit hooks (husky + cargo fmt + eslint --fix)
-6. [ ] Implement structured JSON logging in daemon (tracing + serde_json)
+### Priority 1 — Fix Orphaned Mock Data (M3.7)
+- [ ] Wire `mock_book` into `AppState` as fallback when Binance disconnected
+- [ ] Or: merge mock data into `latest_book` when Binance feed is absent
+
+### Priority 2 — Wire Capital Search in UI (M3.5)
+- [ ] Create `/api/v1/capital/search` proxy route
+- [ ] Create `/api/v1/capital/health` proxy route
+- [ ] Add `CapitalSearchPanel` component with search input + results display
+- [ ] Add `search` view to `ViewState` in page.tsx
+- [ ] Add search nav item to Sidebar
+
+### Priority 3 — Daemon Risk Endpoint (M6.3)
+- [ ] Design `GET /v1/risk` response schema
+- [ ] Implement risk computation from order book (volatility, spread risk, depth risk)
+- [ ] Add TypeScript contract and adapter
+- [ ] Wire into `RiskSnapshot` component replacing client-side heuristics
+
+### Priority 4 — CI Hardening (Tech Debt)
+- [ ] Add `cargo clippy -- -D warnings` to CI
+- [ ] Add `npm run typecheck` (or `tsc --noEmit`) to CI
+- [ ] Add dependency audit (`cargo audit` or `npm audit`) to CI
+
+### Priority 5 — Agent Fleet Endpoint (M8.1)
+- [ ] Design daemon endpoint for agent fleet data
+- [ ] Implement `GET /v1/agent-fleet` in Rust
+- [ ] Wire TypeScript contracts and replace `buildAgentFleet()` placeholder
