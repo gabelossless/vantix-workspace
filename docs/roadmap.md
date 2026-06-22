@@ -169,6 +169,21 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 
 ---
 
+## Milestone 9: External Skill Bridges (Future)
+
+### 9.1 Binance AI Agent Skills Evaluation
+- [ ] Evaluate Binance's announced AI Agent Skills as an optional external adapter surface
+- [ ] Map `Binance Spot Skill` to a quarantined execution bridge, not the core daemon path
+- [ ] Reuse the local-first risk model and require explicit operator confirmation for all remote execution
+- [ ] Define a minimal MCP or HTTP contract for wallet / token / market-data skill calls
+
+### 9.2 Integration Guardrails
+- [ ] Keep Binance skill usage behind a feature flag or separate process boundary
+- [ ] Preserve daemon-owned market data and risk as the source of truth
+- [ ] Add audit logging for any remote skill invocation or trade action
+
+---
+
 ## Technical Debt & Hygiene
 
 | Item | Status |
@@ -212,6 +227,7 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 | 2026-06-21 | `GET /v1/risk` moved to daemon-sourced microstructure analysis | Replaces client-only heuristics with a shared risk contract |
 | 2026-06-21 | `GET /v1/agent-fleet` added to daemon and UI | Fleet panel now renders configured agent roster from the daemon |
 | 2026-06-21 | Capital search UI wired to daemon endpoints | Capital health and search are now reachable through `/api/v1/capital/*` |
+| 2026-06-21 | Binance AI Agent Skills are an external bridge, not core infra | Keep local-first daemon ownership of data/risk; evaluate remote skills only behind opt-in boundaries |
 
 ---
 
@@ -251,3 +267,8 @@ MockExchange writes to its own `mock_book` `Arc<RwLock>` that is never wired int
 - [ ] Add `cargo deny` / `cargo audit` coverage
 - [ ] Add Rust `deny(warnings)` to CI
 - [ ] Self-host fonts to remove Google Fonts dependency
+
+### Priority 6 — External Skill Bridge Evaluation
+- [ ] Review Binance AI Agent Skills against Vantix trust boundaries
+- [ ] Decide whether to support remote execution skills as an optional adapter
+- [ ] If adopted, define the smallest possible integration surface and audit trail
